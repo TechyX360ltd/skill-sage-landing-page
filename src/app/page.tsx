@@ -14,6 +14,8 @@ export default function Home() {
   const catDropdownRef = useRef<HTMLDivElement>(null);
   // State for Why Skill Sage submenu
   const [whyOpen, setWhyOpen] = useState(false);
+  // State for Why Skill Sage section tab
+  const [tab, setTab] = useState<'learners' | 'creators'>('learners');
 
   // Typing animation for hero title
   const words = ["Build", "Grow", "Monetize"];
@@ -92,6 +94,44 @@ export default function Home() {
           {/* Left: Logo */}
           <div className="flex items-center gap-2 md:gap-4 ml-0">
             <Image src="/Skill Sage Logo.png" alt="SKILL SAGE Logo" width={120} height={40} className="ml-1 md:ml-4 w-[120px] md:w-[180px] h-auto" />
+            <div className="relative hidden md:block">
+              <button
+                ref={catBtnRef}
+                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-4 py-2 rounded-full ml-2 shadow-sm transition focus:outline-none"
+                onClick={() => setCatOpen(v => !v)}
+                aria-haspopup="true"
+                aria-expanded={catOpen}
+                type="button"
+              >
+                {/* Grid Icon */}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/></svg>
+                Category
+                <svg className={`w-4 h-4 transition-transform duration-200 ${catOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {/* Dropdown */}
+              {catOpen && (
+                <div
+                  ref={catDropdownRef}
+                  className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 animate-fade-in-down"
+                  style={{ minWidth: 180 }}
+                >
+                  <div className="py-2">
+                    {categories.length === 0 ? (
+                      <div className="px-4 py-2 text-gray-400 text-sm">Loading...</div>
+                    ) : (
+                      categories.map((cat, i) => (
+                        <div
+                          key={cat + i}
+                          className="px-4 py-2 text-gray-700 hover:bg-[#e0edff] hover:text-blue-700 cursor-pointer transition-all rounded-lg"
+                        >
+                          {cat}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           {/* Desktop Nav */}
           <nav className="hidden md:flex gap-4 text-base font-semibold text-gray-800 mx-auto justify-center flex-1">
@@ -366,25 +406,101 @@ export default function Home() {
           Explore Top Skills Categories<br/>
           That Can Make You
         </motion.h2>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {[
-            { icon: "/3dicons-gift-dynamic-color.png", title: "Discover", desc: "Explore a wide range of courses and tutorials." },
-            { icon: "/3dicons-star-dynamic-color.png", title: "Learn", desc: "Learn at your own pace, earn badges and certificates." },
-            { icon: "/3dicons-trophy-dynamic-color.png", title: "Teach", desc: "Share your skills and create your own courses." },
-            { icon: "/3dicons-money-bag-dynamic-color.png", title: "Earn", desc: "Monetize your talent through paid tutorials and courses." },
-          ].map((step, i) => (
-            <motion.div key={step.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 * i, duration: 0.7 }} className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center">
-              <Image src={step.icon} alt={step.title} width={64} height={64} className="mb-4" />
-              <h3 className="text-xl font-semibold mb-2 text-indigo-700">{step.title}</h3>
-              <p className="text-gray-600">{step.desc}</p>
-            </motion.div>
+            {
+              img: '/design.webp',
+              name: 'Web Design',
+              count: 1,
+            },
+            {
+              img: '/server.webp',
+              name: 'Backend',
+              count: 2,
+            },
+            {
+              img: '/personal.webp',
+              name: 'Full Stack',
+              count: 1,
+            },
+            {
+              img: '/pantone.webp',
+              name: 'Mobile Application',
+              count: 1,
+            },
+            {
+              img: '/design (1).webp',
+              name: 'Finance & Accounting',
+              count: 1,
+            },
+            {
+              img: '/smartphone.webp',
+              name: 'Graphic Design',
+              count: 2,
+            },
+            {
+              img: '/infographic.png',
+              name: 'Infographics',
+              count: 1,
+            },
+            {
+              img: '/window.svg',
+              name: 'Personal Development',
+              count: 1,
+            },
+          ].map((cat, i) => (
+            <div
+              key={cat.name}
+              className="bg-white rounded-[10px] shadow p-8 flex flex-col items-center text-center transition-transform duration-300 group cursor-pointer hover:shadow-2xl hover:-translate-y-2 hover:scale-105 border border-transparent hover:border-[#1D4ED8]/30"
+              style={{ minHeight: 260 }}
+            >
+              <img src={cat.img} alt={cat.name} className="mb-6" style={{ width: 80, height: 80, objectFit: 'contain' }} />
+              <div className="font-bold text-xl mb-2 text-[#111]">{cat.name}</div>
+              <div className="text-base text-[#222] font-medium flex items-center gap-1">
+                {cat.count} Course{cat.count > 1 ? 's' : ''}
+                <span className="ml-1 text-lg">&rarr;</span>
+              </div>
+            </div>
           ))}
         </div>
       </section>
 
       {/* Features */}
       <section className="py-20 px-4 sm:px-8 bg-white">
-        <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="text-3xl font-bold text-center mb-12 text-gray-900">Why Choose SKILL SAGE?</motion.h2>
+        <div className="flex justify-center mb-4">
+          <div className="bg-white rounded-full px-5 py-2 shadow-sm flex items-center" style={{ fontSize: '16px', color: '#1D4ED8', fontWeight: 600 }}>
+            Why Choose Skill Sage
+          </div>
+        </div>
+        <motion.h2 
+          initial={{ opacity: 0, y: 30 }} 
+          whileInView={{ opacity: 1, y: 0 }} 
+          viewport={{ once: true }} 
+          transition={{ duration: 0.7 }} 
+          className="text-center mb-6 font-bold"
+          style={{ fontSize: '44px', color: '#000000', lineHeight: 1.1 }}
+        >
+          Alot of Reasons you Should Choose Skill Sage
+        </motion.h2>
+        {/* Tabs for Learners/Creators */}
+        <div className="flex justify-center mb-12">
+          <div className="flex bg-gray-100 rounded-[4px] p-1 gap-2 shadow-sm">
+            <button
+              className={`px-6 py-2 rounded-[4px] font-semibold text-base transition-all duration-200 focus:outline-none ${tab === 'learners' ? 'bg-[#1D4ED8] text-white shadow' : 'bg-transparent text-[#1D4ED8] hover:bg-[#e0edff]'}`}
+              onClick={() => setTab('learners')}
+              type="button"
+            >
+              For Learners
+            </button>
+            <button
+              className={`px-6 py-2 rounded-[4px] font-semibold text-base transition-all duration-200 focus:outline-none ${tab === 'creators' ? 'bg-[#1D4ED8] text-white shadow' : 'bg-transparent text-[#1D4ED8] hover:bg-[#e0edff]'}`}
+              onClick={() => setTab('creators')}
+              type="button"
+            >
+              For Creators
+            </button>
+          </div>
+        </div>
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
           <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="bg-indigo-50 rounded-2xl p-8 shadow-lg">
             <h3 className="text-2xl font-bold mb-4 text-indigo-700">For Learners</h3>
