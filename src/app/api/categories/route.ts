@@ -14,7 +14,7 @@ export async function GET() {
     }
     const data = await res.json();
     return NextResponse.json(Array.isArray(data) ? data.map((c: { name: string }) => c.name) : []);
-  } catch (e) {
+  } catch {
     return NextResponse.json([], { status: 200 });
   }
 } 

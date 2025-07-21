@@ -42,7 +42,7 @@ export async function GET() {
     
     const data = await res.json();
     return NextResponse.json(Array.isArray(data) ? data : []);
-  } catch (e) {
+  } catch {
     // Return fallback data on error
     return NextResponse.json([
       {

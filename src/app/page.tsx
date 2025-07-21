@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // Client-side only wrapper to prevent hydration issues
 function ClientOnly({ children }: { children: React.ReactNode }) {
@@ -30,7 +30,14 @@ export default function Home() {
   const [catOpen, setCatOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   // Featured courses state
-  const [featuredCourses, setFeaturedCourses] = useState<any[]>([]);
+  const [featuredCourses, setFeaturedCourses] = useState<Array<{
+    id: number;
+    title: string;
+    description: string;
+    price: number;
+    category: string;
+    featured: boolean;
+  }>>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
   const catBtnRef = useRef<HTMLButtonElement>(null);
   const catDropdownRef = useRef<HTMLDivElement>(null);
@@ -39,6 +46,8 @@ export default function Home() {
   // State for Why Skill Sage section tab
   const [tab, setTab] = useState<'learners' | 'creators'>('learners');
   const [activeMenu, setActiveMenu] = useState("Home");
+  // State for Company submenu
+  const [companyOpen, setCompanyOpen] = useState(false);
 
   // Typing animation for hero title
   const words = ["Build", "Grow", "Monetize"];
@@ -65,7 +74,7 @@ export default function Home() {
       }
     }
     return () => clearTimeout(timeout);
-  }, [typed, typing, wordIdx]);
+  }, [typed, typing, wordIdx, words]);
 
   // Fetch categories when dropdown opens (if not already loaded)
   useEffect(() => {
@@ -200,26 +209,61 @@ export default function Home() {
               { label: "Home" },
               { label: "Why Skill Sage", submenu: ["For Learners", "For Creators"] },
               { label: "Learn" },
-              { label: "Company" }
-            ].map((item, idx) => (
+              { label: "Company", submenu: ["About Us", "Our Careers", "Be a Trainer", "Our Partners", "Terms of service", "Our Policies"] }
+            ].map((item) => (
               <div key={item.label} className="relative group">
                 {item.submenu ? (
                   <>
                     <button
                       className="flex items-center gap-1 px-4 py-2 rounded-full transition-all duration-300 group-hover:bg-[#e0edff] group-hover:text-blue-700 focus:bg-[#e0edff] focus:text-blue-700"
                       style={{ minWidth: 90 }}
-                      onClick={e => { e.preventDefault(); setWhyOpen(v => !v); }}
-                      onMouseEnter={() => setWhyOpen(true)}
-                      onMouseLeave={() => setWhyOpen(false)}
+                      onClick={e => { 
+                        e.preventDefault(); 
+                        if (item.label === "Why Skill Sage") {
+                          setWhyOpen(v => !v);
+                          setCompanyOpen(false);
+                        } else if (item.label === "Company") {
+                          setCompanyOpen(v => !v);
+                          setWhyOpen(false);
+                        }
+                      }}
+                      onMouseEnter={() => {
+                        if (item.label === "Why Skill Sage") {
+                          setWhyOpen(true);
+                          setCompanyOpen(false);
+                        } else if (item.label === "Company") {
+                          setCompanyOpen(true);
+                          setWhyOpen(false);
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        if (item.label === "Why Skill Sage") {
+                          setWhyOpen(false);
+                        } else if (item.label === "Company") {
+                          setCompanyOpen(false);
+                        }
+                      }}
                       aria-haspopup="true"
-                      aria-expanded={whyOpen}
+                      aria-expanded={item.label === "Why Skill Sage" ? whyOpen : companyOpen}
                       type="button"
                     >
                       <span className="transition-colors duration-300">{item.label}</span>
-                      <svg className={`w-4 h-4 transition-transform duration-300 ${whyOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                      <svg className={`w-4 h-4 transition-transform duration-300 ${(item.label === "Why Skill Sage" ? whyOpen : companyOpen) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                     </button>
-                    {whyOpen && (
-                      <div className="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 animate-fade-in-down" onMouseEnter={() => setWhyOpen(true)} onMouseLeave={() => setWhyOpen(false)}>
+                    {(item.label === "Why Skill Sage" ? whyOpen : companyOpen) && (
+                      <div className="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 animate-fade-in-down" onMouseEnter={() => {
+                        if (item.label === "Why Skill Sage") {
+                          setWhyOpen(true);
+                        } else if (item.label === "Company") {
+                          setCompanyOpen(true);
+                        }
+                      }} onMouseLeave={() => {
+                        if (item.label === "Why Skill Sage") {
+                          setWhyOpen(false);
+                        } else if (item.label === "Company") {
+                          setCompanyOpen(false);
+                        }
+                      }}>
                         <div className="py-2">
                           {item.submenu.map((sub, i) => (
                             <a
@@ -321,64 +365,109 @@ export default function Home() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="md:hidden fixed top-0 left-0 w-full h-full flex flex-col gap-4 px-8 pt-24 pb-8 bg-white/80 backdrop-blur-lg shadow-lg z-40 animate-fade-in-down"
+              className="md:hidden fixed top-0 left-0 w-full h-full flex flex-col px-8 pt-24 pb-8 bg-white/80 backdrop-blur-lg shadow-lg z-40 animate-fade-in-down"
             >
               <button className="absolute top-6 right-6 p-2 rounded-full bg-white/70" onClick={() => setMenuOpen(false)}>
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
-              <a
-                href="#"
-                onClick={() => setActiveMenu("Home")}
-                className={`hover:text-indigo-600 transition text-lg font-semibold px-3 py-2 rounded ${activeMenu === "Home" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
-              >Home</a>
-              <div>
-                <button
-                  className={`flex items-center gap-2 w-full text-left text-lg font-semibold hover:text-indigo-600 transition focus:outline-none px-3 py-2 rounded ${activeMenu === "Why Skill Sage" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
-                  onClick={() => setWhyOpen(v => !v)}
-                  aria-haspopup="true"
-                  aria-expanded={whyOpen}
-                  type="button"
-                >
-                  Why Skill Sage
-                  <svg className={`w-4 h-4 transition-transform duration-200 ${whyOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                </button>
-                {whyOpen && (
-                  <div className="ml-4 mt-2 flex flex-col gap-2">
-                    <a
-                      href="#"
-                      onClick={() => setActiveMenu("For Learners")}
-                      className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "For Learners" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
-                    >For Learners</a>
-                    <a
-                      href="#"
-                      onClick={() => setActiveMenu("For Creators")}
-                      className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "For Creators" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
-                    >For Creators</a>
-                  </div>
-                )}
+              <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4">
+                <a
+                  href="#"
+                  onClick={() => setActiveMenu("Home")}
+                  className={`hover:text-indigo-600 transition text-lg font-semibold px-3 py-2 rounded ${activeMenu === "Home" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                >Home</a>
+                <div>
+                  <button
+                    className={`flex items-center gap-2 w-full text-left text-lg font-semibold hover:text-indigo-600 transition focus:outline-none px-3 py-2 rounded ${activeMenu === "Why Skill Sage" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                    onClick={() => setWhyOpen(v => !v)}
+                    aria-haspopup="true"
+                    aria-expanded={whyOpen}
+                    type="button"
+                  >
+                    Why Skill Sage
+                    <svg className={`w-4 h-4 transition-transform duration-200 ${whyOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  {whyOpen && (
+                    <div className="ml-4 mt-2 flex flex-col gap-2">
+                      <a
+                        href="#"
+                        onClick={() => setActiveMenu("For Learners")}
+                        className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "For Learners" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                      >For Learners</a>
+                      <a
+                        href="#"
+                        onClick={() => setActiveMenu("For Creators")}
+                        className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "For Creators" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                      >For Creators</a>
+                    </div>
+                  )}
+                </div>
+                <a
+                  href="#"
+                  onClick={() => setActiveMenu("Learn")}
+                  className={`hover:text-indigo-600 transition text-lg font-semibold px-3 py-2 rounded ${activeMenu === "Learn" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                >Learn</a>
+                <div>
+                  <button
+                    className={`flex items-center gap-2 w-full text-left text-lg font-semibold hover:text-indigo-600 transition focus:outline-none px-3 py-2 rounded ${activeMenu === "Company" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                    onClick={() => setCompanyOpen(v => !v)}
+                    aria-haspopup="true"
+                    aria-expanded={companyOpen}
+                    type="button"
+                  >
+                    Company
+                    <svg className={`w-4 h-4 transition-transform duration-200 ${companyOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                  {companyOpen && (
+                    <div className="ml-4 mt-2 flex flex-col gap-2">
+                      <a
+                        href="#"
+                        onClick={() => setActiveMenu("About Us")}
+                        className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "About Us" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                      >About Us</a>
+                      <a
+                        href="#"
+                        onClick={() => setActiveMenu("Our Careers")}
+                        className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "Our Careers" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                      >Our Careers</a>
+                      <a
+                        href="#"
+                        onClick={() => setActiveMenu("Be a Trainer")}
+                        className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "Be a Trainer" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                      >Be a Trainer</a>
+                      <a
+                        href="#"
+                        onClick={() => setActiveMenu("Our Partners")}
+                        className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "Our Partners" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                      >Our Partners</a>
+                      <a
+                        href="#"
+                        onClick={() => setActiveMenu("Terms of service")}
+                        className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "Terms of service" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                      >Terms of service</a>
+                      <a
+                        href="#"
+                        onClick={() => setActiveMenu("Our Policies")}
+                        className={`text-base font-medium hover:text-indigo-600 transition px-3 py-2 rounded ${activeMenu === "Our Policies" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
+                      >Our Policies</a>
+                    </div>
+                  )}
+                </div>
               </div>
-              <a
-                href="#"
-                onClick={() => setActiveMenu("Learn")}
-                className={`hover:text-indigo-600 transition text-lg font-semibold px-3 py-2 rounded ${activeMenu === "Learn" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
-              >Learn</a>
-              <a
-                href="#"
-                onClick={() => setActiveMenu("Company")}
-                className={`hover:text-indigo-600 transition text-lg font-semibold px-3 py-2 rounded ${activeMenu === "Company" ? "bg-indigo-100 text-indigo-700 font-bold" : ""}`}
-              >Company</a>
-              <a
-                href="#login"
-                onClick={() => setActiveMenu("Login")}
-                className={`font-bold border border-[#1D4ED8] text-[#1D4ED8] bg-white rounded-full px-6 py-3 text-lg text-center shadow hover:bg-[#e0edff] transition ${activeMenu === "Login" ? "ring-4 ring-indigo-100" : ""}`}
-              >Login</a>
-              <a
-                href="#get-started"
-                onClick={() => setActiveMenu("Get Started")}
-                className={`font-bold text-white bg-[#1D4ED8] rounded-full px-6 py-3 text-lg text-center shadow hover:bg-[#2563eb] transition ${activeMenu === "Get Started" ? "ring-4 ring-indigo-200" : ""}`}
-              >Get Started</a>
-              <div className="mt-auto pt-8 text-center text-xs text-gray-500 opacity-80">
-                &copy; Skill Sage - by TechyX360
+              <div className="pt-6 flex flex-col gap-4">
+                <a
+                  href="#login"
+                  onClick={() => setActiveMenu("Login")}
+                  className={`font-bold border border-[#1D4ED8] text-[#1D4ED8] bg-white rounded-full px-6 py-3 text-lg text-center shadow hover:bg-[#e0edff] transition ${activeMenu === "Login" ? "ring-4 ring-indigo-100" : ""}`}
+                >Login</a>
+                <a
+                  href="#get-started"
+                  onClick={() => setActiveMenu("Get Started")}
+                  className={`font-bold text-white bg-[#1D4ED8] rounded-full px-6 py-3 text-lg text-center shadow hover:bg-[#2563eb] transition ${activeMenu === "Get Started" ? "ring-4 ring-indigo-200" : ""}`}
+                >Get Started</a>
+                <div className="mt-4 text-center text-xs text-gray-500 opacity-80">
+                  &copy; Skill Sage - by TechyX360
+                </div>
               </div>
             </motion.nav>
           )}
@@ -568,7 +657,7 @@ export default function Home() {
               name: 'Personal Development',
               count: 1,
             },
-          ].map((cat, i) => (
+          ].map((cat) => (
             <div
               key={cat.name}
               className="bg-white rounded-[10px] shadow p-4 sm:p-6 md:p-8 flex flex-col items-center justify-center text-center transition-transform duration-300 group cursor-pointer hover:shadow-2xl hover:-translate-y-2 hover:scale-105 border border-transparent hover:border-[#1D4ED8]/30"
@@ -817,8 +906,8 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }} 
             viewport={{ once: true }} 
             transition={{ duration: 0.7 }} 
-            className="font-bold mb-4"
-            style={{ color: '#000000', fontSize: '24px', '@media (min-width: 768px)': { fontSize: '44px' } }}
+            className="font-bold mb-4 text-2xl md:text-[44px]"
+            style={{ color: '#000000' }}
           >
             Featured Courses
           </motion.h2>
@@ -1176,10 +1265,10 @@ function CourseCardStack() {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   // Move top card to back or previous
-  const nextCard = () => {
+  const nextCard = useCallback(() => {
     setActiveIdx((prev) => (prev + 1) % total);
     setDragX(0);
-  };
+  }, [total]);
   const prevCard = () => {
     setActiveIdx((prev) => (prev - 1 + total) % total);
     setDragX(0);
@@ -1230,7 +1319,7 @@ function CourseCardStack() {
       nextCard();
     }, 5000);
     return () => clearTimeout(timer);
-  }, [activeIdx, dragging, touchStartX]);
+  }, [activeIdx, dragging, touchStartX, nextCard]);
 
   return (
     <>
@@ -1388,7 +1477,14 @@ function TestimonialCard({ name, title, company, image, quote, link }: {
 }
 
 // CarouselRow component for auto-scrolling testimonial cards
-function CarouselRow({ testimonials, direction = 'left' }: { testimonials: any[]; direction?: 'left' | 'right'; }) {
+function CarouselRow({ testimonials, direction = 'left' }: { testimonials: Array<{
+  name: string;
+  title: string;
+  company: string;
+  image: string;
+  quote: string;
+  link?: string;
+}>; direction?: 'left' | 'right'; }) {
   const rowRef = useRef<HTMLDivElement>(null);
 
   // Duplicate testimonials for seamless looping
